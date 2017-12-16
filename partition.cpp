@@ -582,16 +582,21 @@ bool TWPartition::Process_Fstab_Line(const char *fstab_line, bool Display_Error,
 		}
 	}
 
-#ifdef QCOM_RTC_FIX
 	if (Mount_Point == "/persist" && Can_Be_Mounted) {
 		bool mounted = Is_Mounted();
 		if (mounted || Mount(false)) {
+			if (TWFunc::Path_Exists(PERSIST_SETTINGS_FILE)) {
+				// Read the backup settings file
+				LOGINFO("Attempt to load settings from /persist settings file...\n");
+				DataManager::LoadPersistValues();
+				DataManager::update_tz_environment_variables();
+				TWFunc::Set_Brightness(DataManager::GetStrValue("tw_brightness"));
+			}
 			TWFunc::Fixup_Time_On_Boot("/persist/time/");
 			if (!mounted)
 				UnMount(false);
 		}
 	}
-#endif
 
 	return true;
 }
